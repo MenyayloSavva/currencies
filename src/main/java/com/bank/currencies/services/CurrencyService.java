@@ -1,13 +1,16 @@
 package com.bank.currencies.services;
 
-import com.bank.currencies.external_data.open_exchange_rates.AllCurrenciesRequest;
-import com.bank.currencies.external_data.open_exchange_rates.OpenExchangeRatesFeignClient;
+import com.bank.currencies.parameters.Parameters;
+import com.bank.currencies.external.OpenExchangeRatesFeignClient;
 import com.bank.currencies.model.Currency;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 @Service
 public class CurrencyService {
@@ -15,23 +18,47 @@ public class CurrencyService {
 @Autowired
 private OpenExchangeRatesFeignClient openExchangeRatesFeignClient;
 
-    public void checkCurrency(Currency currency) {
-        if (StringUtils.hasText(currency.getCode())) {
-            System.out.println("checkCurrency has started");
+    public ResponseEntity checkCurrency(Currency currency) {
+        System.out.println("CurrencyService has started");
 
-            // 1. Check Entered value on the availability of the currencies list. If no, throw Exception "No such currency".
-            ResponseEntity<JSONObject> responseEntity = openExchangeRatesFeignClient.getCurrenciesList(new AllCurrenciesRequest());
-            System.out.println(responseEntity.getBody());
-
-            //JSONObject jsonObject = new JSONObject(openExchangeRatesFeignClient.getCurrenciesList(allCurrenciesRequest).getBody());
-            //System.out.println(jsonObject);
-
-            // 2. Get today's rate and yesterday's. Compare.
-            // 3. If today's equal or higher get Rich Gif.
-            // 4. If today's lower get Broke Gif.
-
-        } else {
-        throw new RuntimeException("Request should contain \"code\"");
+        // 1. Check if Request has "code" in the body
+        if (!StringUtils.hasText(currency.getCode())) {
+            return ResponseEntity.badRequest().body("Request should contain \"code\"");
         }
+
+        // 2. Check if "code" is in the list of the available currencies from "openexchangerates.org"
+        ResponseEntity responseEntity = openExchangeRatesFeignClient.getCurrenciesList(Parameters.OER_CURR_PRETTYPRINT,
+                Parameters.OER_CURR_SHOW_ALTERNATIVE, Parameters.OER_CURR_SHOW_INACTIVE);
+        HashMap<String, Object> responseBody = (HashMap) responseEntity.getBody();
+        if (!responseBody.containsKey(currency.getCode())) {
+            return ResponseEntity.badRequest().body("Request should contain proper \"code\". For example, \"USD\"");
+        }
+
+        // 3. Get today's
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        responseEntity = openExchangeRatesFeignClient.getCurrencyRate(today.format(formatter), Parameters.OER_APP_ID,
+                currency.getCode(), Parameters.OER_HIST_SHOW_ALTERNATIVE, Parameters.OER_HIST_PRETTYPRINT);
+        responseBody = (HashMap) responseEntity.getBody();
+        Double todaysRate = (Double) ((HashMap) responseBody.get("rates")).get(currency.getCode());
+
+        // and yesterday's rates
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        responseEntity = openExchangeRatesFeignClient.getCurrencyRate(yesterday.format(formatter), Parameters.OER_APP_ID,
+                currency.getCode(), Parameters.OER_HIST_SHOW_ALTERNATIVE, Parameters.OER_HIST_PRETTYPRINT);
+        responseBody = (HashMap) responseEntity.getBody();
+        Double yesterdaysRate = (Double) ((HashMap) responseBody.get("rates")).get(currency.getCode());
+
+        // 4. If today's rate equal or higher get Rich Gif. Other way get Broke Gif.
+        Object gif = new Object();
+        if (todaysRate >= yesterdaysRate) {
+            System.out.println("RICH");
+        } else {
+            System.out.println("BROKE");
+        }
+
+
+
+        return ResponseEntity.ok().body("ok");
     }
 }
