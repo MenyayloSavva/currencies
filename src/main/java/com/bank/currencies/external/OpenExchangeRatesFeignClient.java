@@ -5,9 +5,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
-@FeignClient(value = "open-exchange-rates-api", url = Parameters.OER_URL)
+@FeignClient(value = "open-exchange-rates-api", url = Parameters.OER_API_URL)
 public interface OpenExchangeRatesFeignClient {
+
         @GetMapping("/currencies.json")
         ResponseEntity<Object> getCurrenciesList(@RequestParam Boolean prettyprint,
                                                  @RequestParam(name = "show_alternative") Boolean showAlternative,

@@ -37,9 +37,6 @@ dependencies {
 	//Spring Boot Dev Tools
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-	//JSON
-	compile 'org.json:json:20201115'
-
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
