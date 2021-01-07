@@ -40,8 +40,8 @@ private GiphyFeignClient giphyFeignClient;
     public ResponseEntity evaluateCurrency(CurrencyRequest currencyRequest) {
 
         // 0. Initializing params.
-        this.dateFirst = LocalDate.now().minusDays(1);             // Today by BRD.
-        this.dateLast = LocalDate.now().minusDays(2); // Yesterday by BRD.
+        this.dateFirst = LocalDate.now();             // Today by BRD.
+        this.dateLast = LocalDate.now().minusDays(1); // Yesterday by BRD.
         this.giphySearchOffset = (int) (Math.random() * Parameters.GIPHY_SEARCH_RANDOM_LIMIT);
 
         // 1. Check if request has "code" in the body.
