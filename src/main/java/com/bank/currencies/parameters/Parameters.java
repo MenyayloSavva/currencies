@@ -20,6 +20,6 @@ public class Parameters {
 
     public static final Integer GIPHY_SEARCH_LIMIT = 1;
     public static final Integer GIPHY_SEARCH_RANDOM_LIMIT = 2000;
-    public static final String GIPHY_SEARCH_RICH = "rich";
-    public static final String GIPHY_SEARCH_BROKE = "broke";
+    public static final String GIPHY_SEARCH_RICH = "rich ";
+    public static final String GIPHY_SEARCH_BROKE = "broke ";
 }

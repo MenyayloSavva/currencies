@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.*;
 public interface OpenExchangeRatesFeignClient {
 
         @GetMapping("/currencies.json")
-        ResponseEntity<Object> getCurrenciesList(@RequestParam Boolean prettyprint,
-                                                 @RequestParam(name = "show_alternative") Boolean showAlternative,
-                                                 @RequestParam(name = "show_inactive") Boolean showInactive);
+        ResponseEntity<Object> getCurrencyList(@RequestParam Boolean prettyprint,
+                                               @RequestParam(name = "show_alternative") Boolean showAlternative,
+                                               @RequestParam(name = "show_inactive") Boolean showInactive);
 
         @GetMapping("/historical/{date}.json")
         ResponseEntity<Object> getCurrencyRate(@PathVariable String date,

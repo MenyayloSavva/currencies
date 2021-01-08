@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 @Service
 public class CurrencyService {
 
@@ -32,17 +33,10 @@ private GiphyFeignClient giphyFeignClient;
     private Map<String, Object> responseBody;
     private GifResponse gifResponse;
 
-    public CurrencyService() {
-        this.gifResponse = new GifResponse();
-        this.formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    }
-
     public ResponseEntity evaluateCurrency(CurrencyRequest currencyRequest) {
 
         // 0. Initializing params.
-        this.dateFirst = LocalDate.now();             // Today by BRD.
-        this.dateLast = LocalDate.now().minusDays(1); // Yesterday by BRD.
-        this.giphySearchOffset = (int) (Math.random() * Parameters.GIPHY_SEARCH_RANDOM_LIMIT);
+        initializeParams();
 
         // 1. Check if request has "code" in the body.
         if (!StringUtils.hasText(currencyRequest.getCode())) {
@@ -51,7 +45,7 @@ private GiphyFeignClient giphyFeignClient;
 
         // 2. Check if "code" is in the list of the available currencies from "openexchangerates.org".
         try {
-            responseEntity = openExchangeRatesFeignClient.getCurrenciesList(Parameters.OER_CURR_PP, Parameters.OER_CURR_SHOW_ALT, Parameters.OER_CURR_SHOW_INACT);
+            responseEntity = getCurrencyList();
             responseBody = (Map) responseEntity.getBody();
 
             if (!responseBody.containsKey(currencyRequest.getCode())) {
@@ -69,8 +63,7 @@ private GiphyFeignClient giphyFeignClient;
 
         // 4.1. Get today's rate.
         try {
-            responseEntity = openExchangeRatesFeignClient.getCurrencyRate(dateFirst.format(formatter), Parameters.OER_APP_ID,
-                    currencyRequest.getCode(), Parameters.OER_HIST_SHOW_ALT, Parameters.OER_HIST_PP);
+            responseEntity = getCurrencyRate(currencyRequest.getCode(), dateFirst);
             responseBody = (Map) responseEntity.getBody();
             gifResponse.setTodaysRate((Double) ((Map) responseBody.get("rates")).get(currencyRequest.getCode()));
         } catch (Exception e) {
@@ -79,8 +72,7 @@ private GiphyFeignClient giphyFeignClient;
 
         // 4.2. Get yesterday's rate.
         try {
-            responseEntity = openExchangeRatesFeignClient.getCurrencyRate(dateLast.format(formatter), Parameters.OER_APP_ID,
-                    currencyRequest.getCode(), Parameters.OER_HIST_SHOW_ALT, Parameters.OER_HIST_PP);
+            responseEntity = getCurrencyRate(currencyRequest.getCode(), dateLast);
             responseBody = (Map) responseEntity.getBody();
             gifResponse.setYesterdaysRate((Double) ((Map) responseBody.get("rates")).get(currencyRequest.getCode()));
         } catch (Exception e) {
@@ -91,12 +83,10 @@ private GiphyFeignClient giphyFeignClient;
         try {
             if (gifResponse.getTodaysRate() >= gifResponse.getYesterdaysRate()) {
                 gifResponse.setIsRich(true);
-                responseEntity = giphyFeignClient.getRandomGif(Parameters.GIPHY_API_KEY, Parameters.GIPHY_SEARCH_RICH, Parameters.GIPHY_SEARCH_LIMIT,
-                        giphySearchOffset, Parameters.GIPHY_API_RANDOM_ID);
+                responseEntity = getRandomGif(Parameters.GIPHY_SEARCH_RICH);
             } else {
                 gifResponse.setIsRich(false);
-                responseEntity = giphyFeignClient.getRandomGif(Parameters.GIPHY_API_KEY, Parameters.GIPHY_SEARCH_BROKE, Parameters.GIPHY_SEARCH_LIMIT,
-                        giphySearchOffset, Parameters.GIPHY_API_RANDOM_ID);
+                responseEntity = getRandomGif(Parameters.GIPHY_SEARCH_BROKE);
             }
             responseBody = (Map) responseEntity.getBody();
             gifResponse.setGifUrl(((Map) ((ArrayList) responseBody.get("data")).get(0)).get("url").toString());
@@ -107,4 +97,28 @@ private GiphyFeignClient giphyFeignClient;
         // 6. Returning a response.
         return ResponseEntity.ok().body(gifResponse);
     }
+
+
+    private void initializeParams() {
+        this.gifResponse = new GifResponse();
+        this.formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        this.dateFirst = LocalDate.now();             // Today by BRD.
+        this.dateLast = LocalDate.now().minusDays(1); // Yesterday by BRD.
+        this.giphySearchOffset = (int) (Math.random() * Parameters.GIPHY_SEARCH_RANDOM_LIMIT);
+    }
+
+    private ResponseEntity getCurrencyList() {
+        return openExchangeRatesFeignClient.getCurrencyList(Parameters.OER_CURR_PP, Parameters.OER_CURR_SHOW_ALT, Parameters.OER_CURR_SHOW_INACT);
+    }
+
+    private ResponseEntity getCurrencyRate(String currencyCode, LocalDate date) {
+        return openExchangeRatesFeignClient.getCurrencyRate(date.format(formatter), Parameters.OER_APP_ID,
+                currencyCode, Parameters.OER_HIST_SHOW_ALT, Parameters.OER_HIST_PP);
+    }
+
+    private ResponseEntity getRandomGif(String searchQuery) {
+        return giphyFeignClient.getRandomGif(Parameters.GIPHY_API_KEY, searchQuery, Parameters.GIPHY_SEARCH_LIMIT,
+                giphySearchOffset, Parameters.GIPHY_API_RANDOM_ID);
+    }
+
 }
