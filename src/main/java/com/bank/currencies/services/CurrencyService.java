@@ -29,8 +29,6 @@ private GiphyFeignClient giphyFeignClient;
     LocalDate dateLast;
     Integer giphySearchOffset;
     private DateTimeFormatter formatter;
-    private ResponseEntity responseEntity;
-    private Map<String, Object> responseBody;
     private GifResponse gifResponse;
 
     public ResponseEntity evaluateCurrency(CurrencyRequest currencyRequest) {
@@ -45,8 +43,8 @@ private GiphyFeignClient giphyFeignClient;
 
         // 2. Check if "code" is in the list of the available currencies from "openexchangerates.org".
         try {
-            responseEntity = getCurrencyList();
-            responseBody = (Map) responseEntity.getBody();
+            ResponseEntity responseEntity = getCurrencyList();
+            Map<String, Object> responseBody = (Map) responseEntity.getBody();
 
             if (!responseBody.containsKey(currencyRequest.getCode())) {
                 return ResponseEntity.badRequest().body("Request should contain proper \"code\". For example, \"RUB\", \"UAH\", \"JPY\", \"KRW\"");
@@ -63,8 +61,8 @@ private GiphyFeignClient giphyFeignClient;
 
         // 4.1. Get today's rate.
         try {
-            responseEntity = getCurrencyRate(currencyRequest.getCode(), dateFirst);
-            responseBody = (Map) responseEntity.getBody();
+            ResponseEntity responseEntity = getCurrencyRate(currencyRequest.getCode(), dateFirst);
+            Map<String, Object> responseBody = (Map) responseEntity.getBody();
             gifResponse.setTodaysRate((Double) ((Map) responseBody.get("rates")).get(currencyRequest.getCode()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Caught Exception during requesting today's rate.\n" + e.getMessage());
@@ -72,14 +70,15 @@ private GiphyFeignClient giphyFeignClient;
 
         // 4.2. Get yesterday's rate.
         try {
-            responseEntity = getCurrencyRate(currencyRequest.getCode(), dateLast);
-            responseBody = (Map) responseEntity.getBody();
+            ResponseEntity responseEntity = getCurrencyRate(currencyRequest.getCode(), dateLast);
+            Map<String, Object> responseBody = (Map) responseEntity.getBody();
             gifResponse.setYesterdaysRate((Double) ((Map) responseBody.get("rates")).get(currencyRequest.getCode()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Caught Exception during requesting yesterday's rate.\n" + e.getMessage());
         }
 
         // 5. If today's rate is equal or higher, get Rich Gif. Other way get Broke Gif.
+        ResponseEntity responseEntity;
         try {
             if (gifResponse.getTodaysRate() >= gifResponse.getYesterdaysRate()) {
                 gifResponse.setIsRich(true);
@@ -88,7 +87,7 @@ private GiphyFeignClient giphyFeignClient;
                 gifResponse.setIsRich(false);
                 responseEntity = getRandomGif(Parameters.GIPHY_SEARCH_BROKE);
             }
-            responseBody = (Map) responseEntity.getBody();
+            Map<String, Object> responseBody = (Map) responseEntity.getBody();
             gifResponse.setGifUrl(((Map) ((ArrayList) responseBody.get("data")).get(0)).get("url").toString());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Caught Exception during getting gif from GIPHY.\n" + e.getMessage());
