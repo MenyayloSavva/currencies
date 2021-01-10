@@ -1,12 +1,16 @@
-package com.bank.currencies.api;
+package com.bank.currencies.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class GifResponse {
+@NoArgsConstructor
+@AllArgsConstructor
+public class Gif {
     @JsonProperty(value = "rate_today")
     private Double todaysRate;
     @JsonProperty(value = "rate_yesterday")
