@@ -12,9 +12,9 @@ Docker 20.10
 Далее запустите следующие команды:
 
 Linux:\
-_./gradlew build ( ".\gradlew build" for Windows OS, single backslash)_\
-_docker build --build-arg JAR_FILE=build/libs/*.jar -t springio/gs-spring-boot-docker_ .\
-_docker run -p 8080:8080 springio/gs-spring-boot-docker_
+./gradlew build ( ".\gradlew build" for Windows OS, single backslash) \
+docker build --build-arg JAR_FILE=build/libs/*.jar -t springio/gs-spring-boot-docker . \
+docker run -p 8080:8080 springio/gs-spring-boot-docker
 
 Должно запуститься Spring Boot приложение в docker-контейнере, к которому можно отправлять post-запросы.
 Для отправки запросов удобнее всего использовать Postman.
