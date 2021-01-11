@@ -1,0 +1,61 @@
+plugins {
+	id 'org.springframework.boot' version '2.4.1'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+	id 'java'
+}
+
+bootJar {
+	baseName = 'gs-spring-boot-docker'
+	version =  '0.1.0'
+}
+
+group = 'com.bank'
+version = '0.0.1-SNAPSHOT'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+}
+
+ext {
+	set('springCloudVersion', "2020.0.0")
+}
+
+dependencies {
+	//Spring Web
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	//Open Feign
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+	//JUnit
+	implementation 'junit:junit:4.12'
+
+	//Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	//Spring Boot Dev Tools
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
