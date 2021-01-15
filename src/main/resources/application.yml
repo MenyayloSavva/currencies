@@ -1,0 +1,27 @@
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+name: currencies-YAML
+environment: production
+open_exchange_rates:
+  api_url: "https://openexchangerates.org/api"
+  app_id: "789ae70b42e2499a89cf987435d7243a"
+  base_currency: "USD"
+  currencies:
+    pretty_print: true
+    show_alternative: false
+    show_inactive: false
+  historical:
+    pretty_print: true
+    show_alternative: false
+giphy:
+  api_url: "https://api.giphy.com/v1"
+  api_key: "N2wt3ULIwkLdJAQpJPihKDnEfoYMeS3B"
+  api_random_id: "f346dcdf5ff7039d58766e4a6b84b3eb"
+  search:
+    limit: 1
+    random_limit: 2000
+    rich: "rich "
+    broke: "broke "

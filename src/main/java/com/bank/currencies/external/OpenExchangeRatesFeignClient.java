@@ -1,8 +1,6 @@
 package com.bank.currencies.external;
 
-import com.bank.currencies.external.configuration.FeignConfiguration;
 import com.bank.currencies.external.responses.OERHistResponse;
-import com.bank.currencies.parameters.Parameters;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
-@FeignClient(value = "open-exchange-rates-api", url = Parameters.OER_API_URL, configuration = FeignConfiguration.class)
+@FeignClient(value = "open-exchange-rates-api", url = "${open_exchange_rates.api_url}")
 public interface OpenExchangeRatesFeignClient {
 
         @GetMapping("/currencies.json")

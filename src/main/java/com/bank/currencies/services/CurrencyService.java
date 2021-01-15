@@ -1,12 +1,12 @@
 package com.bank.currencies.services;
 
+import com.bank.currencies.configs.YAMLConfig;
 import com.bank.currencies.external.GiphyFeignClient;
 import com.bank.currencies.external.OpenExchangeRatesFeignClient;
 import com.bank.currencies.external.responses.GiphyResponse;
 import com.bank.currencies.external.responses.OERHistResponse;
 import com.bank.currencies.model.Currency;
 import com.bank.currencies.model.Gif;
-import com.bank.currencies.parameters.Parameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,6 +18,9 @@ import java.util.Map;
 
 @Service
 public class CurrencyService {
+
+    @Autowired
+    private YAMLConfig configs;
 
     @Autowired
     private OpenExchangeRatesFeignClient openExchangeRatesFeignClient;
@@ -44,9 +47,9 @@ public class CurrencyService {
         // 2. Check if "code" is in the list of the available currencies from "openexchangerates.org".
         try {
             Map<String, String> currencyMap  = getCurrencyList();
-            if (!currencyMap.containsKey(currency.getCode()) || currency.getCode().equals(Parameters.OER_BASE_CURR)) {
+            if (!currencyMap.containsKey(currency.getCode()) || currency.getCode().equals(configs.getOpenExchangeRates().getBaseCurrency())) {
                 return ResponseEntity.badRequest().body("Request should contain proper \"code\". For example, \"RUB\", \"UAH\", \"JPY\", \"KRW\"" +
-                        "\nExcluding \"openexchangerates.org\" base currency (" + Parameters.OER_BASE_CURR + ")");
+                        "\nExcluding \"openexchangerates.org\" base currency (" + configs.getOpenExchangeRates().getBaseCurrency() + ")");
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Caught Exception during requesting list of all currencies.\n" + e.getMessage());
@@ -67,10 +70,10 @@ public class CurrencyService {
             GiphyResponse response;
             if (gif.getTodaysRate() >= gif.getYesterdaysRate()) {
                 gif.setIsRich(true);
-                response = getRandomGif(Parameters.GIPHY_SEARCH_RICH);
+                response = getRandomGif(configs.getGiphy().getSearch().getRich());
             } else {
                 gif.setIsRich(false);
-                response = getRandomGif(Parameters.GIPHY_SEARCH_BROKE);
+                response = getRandomGif(configs.getGiphy().getSearch().getBroke());
             }
             gif.setGifUrl(response.getData().get(0).getUrl());
         } catch (Exception e) {
@@ -87,21 +90,35 @@ public class CurrencyService {
         this.formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         this.dateFirst = LocalDate.now();             // Today by BRD.
         this.dateLast = LocalDate.now().minusDays(1); // Yesterday by BRD.
-        this.giphySearchOffset = (int) (Math.random() * Parameters.GIPHY_SEARCH_RANDOM_LIMIT);
+        this.giphySearchOffset = (int) (Math.random() * configs.getGiphy().getSearch().getRandomLimit());
     }
 
     private Map<String,String> getCurrencyList() {
-        return openExchangeRatesFeignClient.getCurrencyList(Parameters.OER_CURR_PP, Parameters.OER_CURR_SHOW_ALT, Parameters.OER_CURR_SHOW_INACT);
+        return openExchangeRatesFeignClient.getCurrencyList(
+                configs.getOpenExchangeRates().getCurrencies().getPrettyPrint(),
+                configs.getOpenExchangeRates().getCurrencies().getShowAlternative(),
+                configs.getOpenExchangeRates().getCurrencies().getShowInactive()
+        );
     }
 
     private OERHistResponse getCurrencyRate(String currencyCode, LocalDate date) {
-        return openExchangeRatesFeignClient.getCurrencyRate(date.format(formatter), Parameters.OER_APP_ID,
-                currencyCode, Parameters.OER_HIST_SHOW_ALT, Parameters.OER_HIST_PP);
+        return openExchangeRatesFeignClient.getCurrencyRate(
+                date.format(formatter),
+                configs.getOpenExchangeRates().getAppId(),
+                currencyCode,
+                configs.getOpenExchangeRates().getHistorical().getShowAlternative(),
+                configs.getOpenExchangeRates().getHistorical().getPrettyPrint()
+        );
     }
 
     private GiphyResponse getRandomGif(String searchQuery) {
-        return giphyFeignClient.getRandomGif(Parameters.GIPHY_API_KEY, searchQuery, Parameters.GIPHY_SEARCH_LIMIT,
-                giphySearchOffset, Parameters.GIPHY_API_RANDOM_ID);
+        return giphyFeignClient.getRandomGif(
+                configs.getGiphy().getApiKey(),
+                searchQuery,
+                configs.getGiphy().getSearch().getLimit(),
+                giphySearchOffset,
+                configs.getGiphy().getApiRandomId()
+        );
     }
 
 }

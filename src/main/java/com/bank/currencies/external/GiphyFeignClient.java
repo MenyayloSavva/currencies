@@ -1,13 +1,11 @@
 package com.bank.currencies.external;
 
-import com.bank.currencies.external.configuration.FeignConfiguration;
 import com.bank.currencies.external.responses.GiphyResponse;
-import com.bank.currencies.parameters.Parameters;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(value = "giphy-api", url = Parameters.GIPHY_API_URL, configuration = FeignConfiguration.class)
+@FeignClient(value = "giphy-api", url = "${giphy.api_url}")
 public interface GiphyFeignClient {
 
     @GetMapping("/gifs/search")
