@@ -36,6 +36,7 @@ dependencies {
 
 	//Open Feign
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	compile group: 'io.github.openfeign', name: 'feign-jackson', version: '11.0'
 
 	//JUnit
 	implementation 'junit:junit:4.12'
