@@ -28,10 +28,10 @@ public class CurrencyService {
     @Autowired
     private GiphyFeignClient giphyFeignClient;
 
-    LocalDate dateFirst;
-    LocalDate dateLast;
-    Integer giphySearchOffset;
-    private DateTimeFormatter formatter;
+    private LocalDate dateFirst;
+    private LocalDate dateLast;
+    private Integer giphySearchOffset;
+    public DateTimeFormatter formatter;
     private Gif gif;
 
     public ResponseEntity evaluateCurrency(Currency currency) {
@@ -70,10 +70,10 @@ public class CurrencyService {
             GiphyResponse response;
             if (gif.getTodaysRate() >= gif.getYesterdaysRate()) {
                 gif.setIsRich(true);
-                response = getRandomGif(configs.getGiphy().getSearch().getRich());
+                response = getRandomGif(configs.getGiphy().getSearch().getRich(), giphySearchOffset);
             } else {
                 gif.setIsRich(false);
-                response = getRandomGif(configs.getGiphy().getSearch().getBroke());
+                response = getRandomGif(configs.getGiphy().getSearch().getBroke(), giphySearchOffset);
             }
             gif.setGifUrl(response.getData().get(0).getUrl());
         } catch (Exception e) {
@@ -85,7 +85,7 @@ public class CurrencyService {
     }
 
 
-    private void initializeParams() {
+    public void initializeParams() {
         this.gif = new Gif();
         this.formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         this.dateFirst = LocalDate.now();             // Today by BRD.
@@ -93,7 +93,7 @@ public class CurrencyService {
         this.giphySearchOffset = (int) (Math.random() * configs.getGiphy().getSearch().getRandomLimit());
     }
 
-    private Map<String,String> getCurrencyList() {
+    public Map<String,String> getCurrencyList() {
         return openExchangeRatesFeignClient.getCurrencyList(
                 configs.getOpenExchangeRates().getCurrencies().getPrettyPrint(),
                 configs.getOpenExchangeRates().getCurrencies().getShowAlternative(),
@@ -101,7 +101,7 @@ public class CurrencyService {
         );
     }
 
-    private OERHistResponse getCurrencyRate(String currencyCode, LocalDate date) {
+    public OERHistResponse getCurrencyRate(String currencyCode, LocalDate date) {
         return openExchangeRatesFeignClient.getCurrencyRate(
                 date.format(formatter),
                 configs.getOpenExchangeRates().getAppId(),
@@ -111,7 +111,7 @@ public class CurrencyService {
         );
     }
 
-    private GiphyResponse getRandomGif(String searchQuery) {
+    public GiphyResponse getRandomGif(String searchQuery, Integer giphySearchOffset) {
         return giphyFeignClient.getRandomGif(
                 configs.getGiphy().getApiKey(),
                 searchQuery,
